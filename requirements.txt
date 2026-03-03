@@ -1,0 +1,7 @@
+psycopg2-binary==2.9.9
+pandas==2.2.0
+streamlit==1.29.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.2
+python-dotenv==1.0.0
