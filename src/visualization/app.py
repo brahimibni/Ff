@@ -39,7 +39,7 @@ engine = init_connection()
 # Data loading functions with caching
 @st.cache_data(ttl=3600)
 def load_players():
-    query = """
+    query = text("""
         SELECT 
             p.id,
             p.name,
@@ -62,12 +62,17 @@ def load_players():
         FROM players p
         JOIN teams t ON p.team_id = t.id
         ORDER BY p.total_points DESC;
-    """
-    return pd.read_sql(query, engine)
+    """)
+    try:
+        with engine.connect() as conn:
+            return pd.read_sql(query, conn)
+    except Exception as e:
+        st.error(f"❌ **Error loading players table:** `{e}`")
+        st.stop()
 
 @st.cache_data(ttl=3600)
 def load_teams():
-    query = """
+    query = text("""
         SELECT 
             id,
             name,
@@ -75,12 +80,17 @@ def load_teams():
             strength
         FROM teams
         ORDER BY strength DESC;
-    """
-    return pd.read_sql(query, engine)
+    """)
+    try:
+        with engine.connect() as conn:
+            return pd.read_sql(query, conn)
+    except Exception as e:
+        st.error(f"❌ **Error loading teams table:** `{e}`")
+        st.stop()
 
 @st.cache_data(ttl=3600)
 def load_top_scorers():
-    query = """
+    query = text("""
         SELECT 
             p.name,
             t.short_name as team,
@@ -92,12 +102,17 @@ def load_top_scorers():
         WHERE p.goals_scored > 0 OR p.assists > 0
         ORDER BY p.goals_scored DESC
         LIMIT 20;
-    """
-    return pd.read_sql(query, engine)
+    """)
+    try:
+        with engine.connect() as conn:
+            return pd.read_sql(query, conn)
+    except Exception as e:
+        st.error(f"❌ **Error loading top scorers:** `{e}`")
+        st.stop()
 
 @st.cache_data(ttl=3600)
 def load_recommendations():
-    query = """
+    query = text("""
         SELECT 
             r.player_id,
             p.name,
@@ -124,22 +139,30 @@ def load_recommendations():
                 WHEN 'SELL' THEN 3
             END,
             r.confidence DESC;
-    """
-    return pd.read_sql(query, engine)
+    """)
+    try:
+        with engine.connect() as conn:
+            return pd.read_sql(query, conn)
+    except Exception as e:
+        st.error(f"❌ **Error loading recommendations table:** `{e}`")
+        st.stop()
 
 @st.cache_data(ttl=3600)
 def get_next_deadline():
-    # Using gameweeks table now (more direct)
-    query = """
+    query = text("""
         SELECT deadline_time FROM gameweeks
         WHERE finished = false
         ORDER BY id ASC
         LIMIT 1
-    """
-    df = pd.read_sql(query, engine)
-    if not df.empty:
-        return pd.to_datetime(df.iloc[0,0])
-    return None
+    """)
+    try:
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn)
+        if not df.empty:
+            return pd.to_datetime(df.iloc[0, 0])
+        return None
+    except Exception:
+        return None
 
 # Load data
 players_df = load_players()
