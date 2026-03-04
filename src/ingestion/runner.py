@@ -154,7 +154,7 @@ def update_player_history(conn):
                     gw["own_goals"], gw["penalties_saved"], gw["penalties_missed"],
                     gw["yellow_cards"], gw["red_cards"], gw["saves"], gw["bonus"],
                     gw["bps"], gw["influence"], gw["creativity"], gw["threat"],
-                    gw["ict_index"], gw["total_points"], gw["in_dreamteam"]
+                    gw["ict_index"], gw["total_points"], gw.get("in_dreamteam", False)
                 ))
             conn.commit()
             print(f"Updated history for player {pid}")
