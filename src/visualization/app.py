@@ -44,7 +44,7 @@ def load_players():
             p.id,
             p.name,
             t.name as team,
-            CASE p.position 
+            CASE p.position::INTEGER 
                 WHEN 1 THEN 'GKP'
                 WHEN 2 THEN 'DEF'
                 WHEN 3 THEN 'MID'
@@ -117,7 +117,7 @@ def load_recommendations():
             r.player_id,
             p.name,
             t.short_name as team,
-            CASE p.position 
+            CASE p.position::INTEGER 
                 WHEN 1 THEN 'GKP'
                 WHEN 2 THEN 'DEF'
                 WHEN 3 THEN 'MID'
