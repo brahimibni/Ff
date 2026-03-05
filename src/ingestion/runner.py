@@ -223,8 +223,8 @@ def update_xg_data(conn):
     players_df = pd.read_sql("SELECT id, name FROM players", engine)
     understat_df = fetch_understat_data()
     
-    if understat_df.empty:
-        print("[runner] Skipping XG update — no Understat data.")
+    if understat_df.empty or 'id' not in understat_df.columns:
+        print("[runner] Skipping XG update — no Understat data or missing 'id' column.")
         return
         
     xg_df = match_understat_to_fpl(understat_df, players_df)

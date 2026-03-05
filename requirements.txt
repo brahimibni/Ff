@@ -7,3 +7,4 @@ requests>=2.31.0
 beautifulsoup4>=4.12.2
 lxml>=5.0.0
 python-dotenv>=1.0.0
+understat>=0.3.0

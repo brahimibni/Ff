@@ -4,19 +4,33 @@ def generate_recommendations(conn):
     players = pd.read_sql("""
         SELECT p.id, p.name, p.position, p.now_cost/10.0 as cost,
                p.total_points, p.form as current_form, p.selected_by_percent,
-               t.short_name as team, t.strength
+               p.team_id, t.short_name as team, t.strength
         FROM players p
         JOIN teams t ON p.team_id = t.id
     """, conn)
 
     metrics = pd.read_sql("SELECT * FROM player_metrics", conn)
-    players = players.merge(metrics, on="id", how="left")
+    if not metrics.empty and "player_id" in metrics.columns:
+        players = players.merge(metrics, left_on="id", right_on="player_id", how="left")
+    else:
+        print("[recommendations] Warning: metrics table empty or missing player_id. Skipping merge.")
+        for col in ["ppm", "form", "minutes_stability"]:
+            players[col] = 0
 
     xg = pd.read_sql("SELECT player_id, xG, xA FROM player_xg", conn)
-    players = players.merge(xg, left_on="id", right_on="player_id", how="left")
+    if not xg.empty and "player_id" in xg.columns:
+        players = players.merge(xg, left_on="id", right_on="player_id", how="left")
+    else:
+        print("[recommendations] Warning: xG table empty or missing player_id. Skipping merge.")
+        for col in ["xG", "xA"]:
+            players[col] = 0
 
     fdr = pd.read_sql("SELECT team_id, next_5_fdr FROM team_fixture_ratings", conn)
-    players = players.merge(fdr, left_on="id", right_on="team_id", how="left")
+    if not fdr.empty and "team_id" in fdr.columns:
+        players = players.merge(fdr, left_on="team_id", right_on="team_id", how="left")
+    else:
+        print("[recommendations] Warning: FDR table empty or missing team_id. Skipping merge.")
+        players["next_5_fdr"] = 3.0
 
     players.fillna({
         "form": 0,
